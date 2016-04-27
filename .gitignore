@@ -4,4 +4,3 @@
 *.synctex.gz
 data
 data/*
-*.RData
