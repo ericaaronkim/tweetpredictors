@@ -6,3 +6,4 @@ data
 data/*
 cluster
 cluster/*
+*.DS_Store
