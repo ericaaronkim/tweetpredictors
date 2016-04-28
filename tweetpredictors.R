@@ -64,7 +64,7 @@ library(gbm)
 setwd("~/Dropbox/Spring 2016/stat154/tweetpredictors")
 
 load("data/TrainTest.RData")
-#load(".RData")
+#load("data/.RData")
 #load("data/gbm1.RData")
 #load("data/gbm2.RData")
 
