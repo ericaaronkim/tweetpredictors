@@ -105,25 +105,24 @@ $$\begin{array}{|c|c|c|c|c|}
 \hline
 \text{Model} & \text{CV Acc} & \text{Kaggle Acc} & \text{CV F1 Score} & \text{Hyper-Parameters} \\
 \hhline{|=|=|=|=|=|}
-\text{Logistic Regression} & 0.7576561 & 0.75844 & 0.7640936 & \lambda = 0.001153669\\
+\text{Logistic Regression} & 0.7576 & 0.75844 & 0.7640936 & \lambda = 0.001153669\\
 \hline
-\text{Cleaned LR} & 0.732 & - & 0.7458752 & \lambda = 0.001159524 \\
+\text{Cleaned LR} & 0.7324 & - & 0.7458752 & \lambda = 0.001159524 \\
 \hline
 \text{Binarized LR} & 0.7314 & - & 0.7445311 & \lambda = 0.001110128 \\
 \hline
 \end{array}$$
-%0.7235
 
 \subsection{Random Forest}
 $$\begin{array}{|c|c|c|c|c|}
 \hline
 \text{Model} & \text{CV Acc} & \text{Kaggle Acc} & \text{CV F1 Score} & \text{Hyper-Parameters}   \\
 \hhline{|=|=|=|=|=|}
-\text{Random Forest} &  &  &  & \text{n.trees} = 100 \\
+\text{Random Forest} & 0.7455 & 0.70640 & 0.7393782 & \text{n.trees} = 100 \\
 \hline
-\text{Cleaned RF} &  &  &  & \text{n.trees} = 100 \\
+\text{Cleaned RF} & .7241 & - & 0.7177337 & \text{n.trees} = 100 \\
 \hline
-\text{Binarized RF} & 0.7237 & 0.70640 & 0.7181475 & \text{n.trees} = 100 \\
+\text{Binarized RF} & 0.7237 & - & 0.7181475 & \text{n.trees} = 100 \\
 \hline
 \end{array}$$
 
@@ -181,9 +180,6 @@ e ensembling, there was overfitting and hence we saw much better results in our
 data than on Kaggle. All in all, if we were to return to this dataset or work wi
 th similar datasets, it seems feature engineering would play a rather large role
  in improving accuracy.
-
-
-\newpage
 
 \section{References}
 [1] J. Bollen and H. Mao. Twitter mood as a stock market predictor. IEEE Computer, 44(10):91–94, (2010)
