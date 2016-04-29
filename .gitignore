@@ -7,4 +7,5 @@ data
 data/*
 cluster
 cluster/*
+*.RData
 .DS_Store

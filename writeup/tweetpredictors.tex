@@ -98,7 +98,7 @@ Due to the sheer computational cost of running neural nets, we only fit models w
 \centerline{\includegraphics[scale=.35]{diagrams/8nn.png} ~~~~~~~~~~ \includegraphics[scale=.35]{diagrams/9nn.png}}
 
 \section{Model Fitting}
-For our models, we focus on mainly four methods: logistic regression, random forest, gradient boosting, and neural networks. These models were chosen because of their natural tendencies to perform in classification. We present the results in the tables below. We cross validate and look at the CV Accuracy as well as the CV F1 Score and report those below as well.
+For our models, we focus on four methods: logistic regression, random forest, gradient boosting, and neural networks. These models were chosen because of their capabilities for classification. We present the results in the tables below. To cross validate, we trained our model to all but 10000 data points in their respective models and looked at the CV Accuracy as well as the CV F1 Score and report those below as well.
 
 \subsection{$L^1$ Penalized Logistic Regression}
 $$\begin{array}{|c|c|c|c|c|}
@@ -132,11 +132,11 @@ $$\begin{array}{|c|c|c|c|c|}
 \hline
 \text{Model} & \text{CV Acc} & \text{Kaggle Acc} & \text{CV F1 Score} & \text{Hyper-Parameters} \\
 \hhline{|=|=|=|=|=|}
-\text{Gradient Boosting} &  &  &  & \text{n.trees} = 2000 \\
+\text{Gradient Boosting} &0.73429  & - & 0.7453392 & \text{n.trees} = 2000 \\
 \hline
-\text{Cleaned GB} &  &  &  & \text{n.trees} = 2000 \\
+\text{Cleaned GB} & 0.73858 & 0.70700 & 0.7466003 & \text{n.trees} = 2000 \\
 \hline
-\text{Binarized GB} & 0.7252 & 0.70700 & 0.7487658 & \text{n.trees} = 2000 \\
+\text{Binarized GB} & 0.7252 & - & 0.7487658 & \text{n.trees} = 2000 \\
 \hline
 \end{array}$$
 
@@ -163,21 +163,37 @@ $$\begin{array}{|c|c|c|c|}
 \hline
 \text{LR + RF + GBM} & 0.7809 & 0.73420 & 0.7557563 \\
 \hline
-\text{$2\times$ LR + RF + GBM + NN} & 0.8026 & - & 0.823 \\
+<<<<<<< HEAD
+\text{$2\times$ LR + RF + GBM + NN} & 0.8026 & 0.73548 & 0.8236588 \\
+=======
+\text{$2\times$ LR + RF + GBM + NN} & 0.8026 & 0.73548 & 0.823 \\
+>>>>>>> 065668bb1a3aca3aed88c31267859e6b305b757e
 \hline
 \end{array}$$
 
 
 \section{Conclusion}
+In conclusion, we were unable to do better than just running a $L^1$ Penalized L
+ogistic Regression on a minorly cleaned dataset. It seemed like we might have cl
+eaned too many predictors and certainly feature engineering would have helped in
+ our predictions. Some of our methods took many hours to run and that did not he
+lp when trying to cross validate. At the end, we found that our ensembling perfo
+rmed particularly well when cross validating, getting up to 80\% at one point. A
+nd even though our ensembled models were for the most part higher than our other
+ models when submitting on Kaggle, it did not perform as we hoped. Perhaps in th
+e ensembling, there was overfitting and hence we saw much better results in our
+data than on Kaggle. All in all, if we were to return to this dataset or work wi
+th similar datasets, it seems feature engineering would play a rather large role
+ in improving accuracy.
+
 
 \newpage
 
 \section{References}
-[1] J. Bollen and H. Mao. Twitter mood as a stock market
-predictor. IEEE Computer, 44(10):91–94, (2010)
+[1] J. Bollen and H. Mao. Twitter mood as a stock market predictor. IEEE Computer, 44(10):91–94, (2010)
 
 [2] Pang, B., Lee, L., Vaithyanathan, S.: Thumbs up?: sentiment classification using machine
 learning techniques, pp. 79–86 (2002)
 
-[Github] https://github.com/ericaaronkim/tweetpredictors, 
+[GITHUB] https://github.com/ericaaronkim/tweetpredictors
 \end{document}
