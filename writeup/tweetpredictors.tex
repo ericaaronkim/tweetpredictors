@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage[left=1in, right=1in, top=1.5in, bottom=1in]{geometry}
+\usepackage[left=1in, right=1in, top=1.3in, bottom=.8in]{geometry}
 \usepackage{fancyhdr, amsfonts, amssymb, amsthm, MnSymbol, bbm, mathrsfs, graphicx, listings, parskip, hhline}
 \pagestyle{fancy}
 \def\Z{\mathbb{Z}}
@@ -59,7 +59,7 @@ Furthermore, this dataset is filled with a lot of stop word predictors. These ar
 
 We also clean out the punctuation. While there are merits to including some in sentiment analysis (e.g. multiple !!!! in a row), since we binarize the data, this information is lost. However, since exclamation marks can be used in both positive and negative ways, we leave these cleaned out to avoid ambiguity. %However in the feature engineering section, we will reincorporate these features back.
 
-Finally, we also remove any unicode characters since they too amount to white noise in the predictor set. For example, a > does not differentiate much from ? aside from the fact that in Spanish, starting a sentence with > indicates that ? will conclude the sentence or the fact that sometimes people will use > when they feel creative. 
+Finally, we also remove any unicode characters since they too amount to white noise in the predictor set. For example, a > does not differentiate much from ? aside from the fact that in Spanish, starting a sentence with > indicates that ? will conclude the sentence. 
 
 Since we have cleaned up a lot of predictors, we are bound to have newly introduced some white noise tweets. We clean these out as well so that we end up with a compact dataset which features the most important words driving tweet sentiment and ignores as much white noise as possible.
 
@@ -75,30 +75,30 @@ Doing a similar analysis for the negative sentiments, we find \texttt{oh} 629 ti
 %\section{Feature Engineering}
 
 \section{Hyperparameter Tuning}
-For each of these methods, we use one model (typically the binarized one) to manually tune the hyperparameters. After finding a hyperparameter that approximately maximizes our CV Accuracy, we use this hyperparameter for all three models. Due to the limited submissions capabilities for Kaggle, we only submit some of the models, usually the models with the best CV Accuracy and report the Kaggle Accuracy for those submission. These results are reported in the next section. 
+For each of these methods, we use one model (typically the binarized one) to manually tune the hyperparameters. After finding a hyperparameter that approximately maximizes our CV Accuracy, we use this hyperparameter for all three datasets.
 
 \subsection{$L^1$ Penalized Logistic Regression}
-We used \texttt{cv.glmnet} to get \texttt{lambda.min}, which is the $\lambda$ that corresponds to the lowest cross validation error. Those are reported in the next section. The following are plots of the mean cross validated error against the varying $\lambda$ values that \texttt{cv.glmnet} tried. \\
+We used \texttt{cv.glmnet} to get \texttt{lambda.min}, which is the $\lambda$, which we report in the next section. The following are plots of the mean cross validated error against the varying $\lambda$ values that \texttt{cv.glmnet} tried. \\
 
-\centerline{\includegraphics[scale=.25]{diagrams/1logreg.png}\includegraphics[scale=.25]{diagrams/2logreg.png}\includegraphics[scale=.25]{diagrams/3logreg.png}}
+\centerline{\includegraphics[scale=.25]{diagrams/1logreg.png} ~~~ \includegraphics[scale=.25]{diagrams/2logreg.png} ~~~ \includegraphics[scale=.25]{diagrams/3logreg.png}}
 
 \subsection{Random Forest}
 For random forests, we fit a model with 100, 500, 1000, and 1500 trees. Interestingly enough, the fits with 500 and 1000 trees performed worse than the model with 100 trees. The following are plots of the misclassification error and the F1 Score. When fitting our model in the next section, we fit with 100 trees instead of 1500 trees in order to prioritize runtime efficiency and because their CV accuracy and  F1 scores were similar. \\
 
-\centerline{\includegraphics[scale=.35]{diagrams/6rf.png} ~~~~~~~~~~ \includegraphics[scale=.35]{diagrams/7rf.png}}
+\centerline{\includegraphics[scale=.29]{diagrams/6rf.png} ~~~~~~~~~~~~~~~ \includegraphics[scale=.29]{diagrams/7rf.png}}
 
 \subsection{Generalized Boosting Models}
-For the GBM models, we used Adaboost with the following fixed hyperparameters \texttt{interaction.depth=5} and \texttt{shrinkage=.01}. We tried \texttt{n.trees=500,1000,1500,2000} on the binarized data. Because toward the larger tree sizes, \texttt{gbm} runs slower, we only plot out the CV Error and F1 Score (misclassification rate) against the four trees we tried. We should note that the difference between 1500 trees and 2000 trees is marginal and that any more would not give much better performance while severely overfitting. \\
+For the GBM models, we used Adaboost with the following fixed hyperparameters \texttt{interaction.depth=5} and \texttt{shrinkage=.01}. We tried \texttt{n.trees=500,1000,1500,2000} on the binarized data. Toward the larger tree sizes, \texttt{gbm} runs slower, but not as slow as Random Forests so we fit the other models with 2000 trees even though it performed similarly to 1500 trees. \\
 
-\centerline{\includegraphics[scale=.35]{diagrams/4gbm.png} ~~~~~~~~~~ \includegraphics[scale=.35]{diagrams/5gbm.png}}
+\centerline{\includegraphics[scale=.29]{diagrams/4gbm.png} ~~~~~~~~~~~~~~~ \includegraphics[scale=.29]{diagrams/5gbm.png}}
 
 \subsection{Neural Networks}
-Due to the sheer computational cost of running neural nets, we only fit models with 200 neurons and 500 neurons, and only on the cleaned, binarized dataset. As we see, they performed very similarly. Also, as noted before, due to the submission limitations of Kaggle, we were unable to submit neural net results to Kaggle. \\
+Due to the sheer computational cost of running neural nets, we only fit models with 200 neurons and 500 neurons, and only on the cleaned, binarized dataset. As we see, they performed very similarly. Also due to the submission limitations of Kaggle, we were unable to submit neural net results to Kaggle. \\
 
-\centerline{\includegraphics[scale=.35]{diagrams/8nn.png} ~~~~~~~~~~ \includegraphics[scale=.35]{diagrams/9nn.png}}
+\centerline{\includegraphics[scale=.29]{diagrams/8nn.png} ~~~~~~~~~~~~~~~ \includegraphics[scale=.29]{diagrams/9nn.png}}
 
 \section{Model Fitting}
-For our models, we focus on four methods: logistic regression, random forest, gradient boosting, and neural networks. These models were chosen because of their capabilities for classification. We present the results in the tables below. To cross validate, we trained our model to all but 10000 data points in their respective models and looked at the CV Accuracy as well as the CV F1 Score and report those below as well.
+For our models, we focus on four methods: logistic regression, random forest, gradient boosting, and neural networks. These models were chosen because of their capabilities for classification. We present the results in the tables below. To cross validate, we trained our model to all but 10000 data points in their respective models and looked at the CV Accuracy as well as the CV F1 Score and report those below as well. Also due to limitations in Kaggle submissions, we take the dataset with the best CV Accuracy and submit that to Kaggle.
 
 \subsection{$L^1$ Penalized Logistic Regression}
 $$\begin{array}{|c|c|c|c|c|}
