@@ -67,6 +67,7 @@ load("data/TrainTest.RData")
 #load("data/.RData")
 #load("data/gbm1.RData")
 #load("data/gbm2.RData")
+#load("data/rf.RData")
 
 source("./data/ClassificationMetrics.R")
 
@@ -128,33 +129,33 @@ colnames(X.clean) <- NULL #avoiding invalid multibyte string error
 colnames(X.clean.bin) <- NULL #avoiding invalid multibyte string error
 set.seed(222222222)
 
-set <- sample(nrow(X.clean), nrow(X.clean)-10000)
+set <- sample(nrow(X.clean), 10000)
 
 # full predictors
-X.full.train <- X.full.cleaned[set,]
-y.full.train <- y.full.cleaned[set]
-X.full.test <- X.full.cleaned[-set,]
-y.full.test <- y.full.cleaned[-set]
+X.full.train <- X.full.cleaned[-set,]
+y.full.train <- y.full.cleaned[-set]
+X.full.test <- X.full.cleaned[set,]
+y.full.test <- y.full.cleaned[set]
 df.train.full.cleaned <- data.frame(y.full.train, as.matrix(X.full.train))
 
 # cleaned predictors
-X.train <- X.clean[set,]
-y.train <- y.clean[set]
-X.test <- X.clean[-set,]
-y.test <- y.clean[-set]
+X.train <- X.clean[-set,]
+y.train <- y.clean[-set]
+X.test <- X.clean[set,]
+y.test <- y.clean[set]
 df.train.cleaned <- data.frame(y.train, as.matrix(X.train))
 
 # binary predictors
-X.train.bin <- X.clean.bin[set,]
-X.test.bin <- X.clean.bin[-set,]
+X.train.bin <- X.clean.bin[-set,]
+X.test.bin <- X.clean.bin[set,]
 df.train.bin.cleaned <- data.frame(y.train, as.matrix(X.train.bin))
 
 # penalized logreg full
-subset.tweet.full.glm.sparse <- cv.glmnet(X.full.cleaned[set,], y.full.cleaned[set], family = "binomial")
-out.glm.full.sparse <- predict(subset.tweet.full.glm.sparse, X.full.cleaned[-set,], type = "response") > .5
+subset.tweet.full.glm.sparse <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
+out.glm.full.sparse <- predict(subset.tweet.full.glm.sparse, X.full.test, type = "response") > .5
 subset.tweet.full.glm.sparse$lambda.min
-accuracy_score(y.full.cleaned[-set],out.glm.full.sparse)
-f1_score(y.full.cleaned[-set],out.glm.full.sparse)
+accuracy_score(y.full.test,out.glm.full.sparse)
+f1_score(y.full.test,out.glm.full.sparse)
 
 # penalized logreg cleaned
 subset.tweet.glm.sparse <- cv.glmnet(X.train, y.train, family = "binomial")
@@ -184,15 +185,88 @@ names(gbm2) <- c("n.trees", "f1")
 ggplot(gbm1, aes(x = n.trees, y = misclassif)) + geom_line() + ggtitle("Misclassification Error Against the Number of Trees") + xlab("Trees")+ylab("Misclassification Error")
 ggplot(gbm2, aes(x = n.trees, y = f1)) + geom_line() + ggtitle("F1 Score Against the Number of Trees") + xlab("Trees")+ylab("F1 Score")
 
+# rf
+rf1 <- data.frame(c(100, 500, 1000, 1500), c(1-0.7237, 1-0.7227, 1-0.7223, 1-0.7243))
+names(rf1) <- c("n.trees", "misclassif")
+rf2 <- data.frame(c(100, 500, 1000, 1500), c(0.7181475, 0.7168386, 0.7165459, 0.7182422))
+names(rf2) <- c("n.trees", "f1")
+ggplot(rf1, aes(x = n.trees, y = misclassif)) + geom_line() + ggtitle("Misclassification Error Against the Number of Trees") + xlab("Trees")+ylab("Misclassification Error")
+ggplot(rf2, aes(x = n.trees, y = f1)) + geom_line() + ggtitle("F1 Score Against the Number of Trees") + xlab("Trees")+ylab("F1 Score")
+
 
 ##### Predicting On Xtest For Submission #####
-kaggle1 <- (predict(subset.tweet.bin.gbm.2000, data.frame(as.matrix(Xtest.clean)), type = "response", n.trees = 1500) > .5)*1
+kaggle1 <- (predict(subset.tweet.full.glm.sparse, data.frame(as.matrix(Xtest.clean)), type = "response") > .5)*1
 kaggle <- cbind(1:50000, kaggle1)
 ### random forest
-kaggle1 <- predict(subset.tweet.rf, data.frame(as.matrix(Xtest)))
+kaggle1 <- predict(subset.tweet.bin.rf.1500, data.frame(as.matrix(Xtest.clean)))
 kaggle <- cbind(1:50000, as.numeric(kaggle1)-1)
 colnames(kaggle) <- c("id", "y")
 
 write.table(kaggle, "submission.csv", col.names = c("id", "y"), row.names = FALSE, sep = ",")
 
 View(kaggle)
+
+
+
+
+
+
+######## testing stuff out ########
+
+foo <- X.full.test
+colnames(foo) <- words$V1
+foo <- foo[,!is.element(colnames(X),stopwords(kind="en"))]
+foo <- foo[,!is.element(colnames(foo),union(letters, LETTERS))]
+foo <- foo[,-grep('[[:punct:]]',colnames(foo))]
+foo <- foo[,-grep('[[:digit:]]',colnames(foo))]
+foo <- foo[,-c(14,18,84,91,150,197,213,252,268,278,334,352,403,416,474,502,587,590,624,627,677,683,729,759,790)]
+
+
+
+x1 <- predict(subset.tweet.full.glm.sparse, Xtest, type = "response") > .5
+x2 <- predict(subset.tweet.bin.rf.1500, data.frame(as.matrix(Xtest.clean)))
+x3 <- predict(subset.tweet.bin.gbm.2000, data.frame(as.matrix(Xtest.clean)),n.trees = 2000, type = "response") > .5
+x4 <- ((x1+(as.numeric(x2)-1)+x3)/3 > .5)*1
+accuracy_score(y.full.test,x4)
+
+
+set <- sample(nrow(X.full.cleaned), 10000)
+
+# full predictors
+X.full.train <- X.full.cleaned[-set,]
+y.full.train <- y.full.cleaned[-set]
+X.full.test <- X.full.cleaned[set,]
+y.full.test <- y.full.cleaned[set]
+#df.train.full.cleaned <- data.frame(y.full.train, as.matrix(X.full.train))
+
+# penalized logreg full
+x1 <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
+x2 <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
+x3 <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
+x4 <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
+x5 <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
+y1 <- predict(x1, Xtest, type = "response") > .5
+y2 <- predict(subset.tweet.bin.rf.1500, data.frame(as.matrix(Xtest)))
+y3 <- predict(subset.tweet.bin.gbm.2000, data.frame(as.matrix(X.test.bin)),n.trees = 2000, type = "response") > .5
+y4 <- predict(x4, Xtest, type = "response") > .5
+y5 <- predict(x5, Xtest, type = "response") > .5
+
+
+
+y6 <- (y1+y2+y3+y4+y5)>.5
+
+kaggle <- cbind(1:50000, x4)
+colnames(kaggle) <- c("id", "y")
+
+write.table(kaggle, "submission.csv", col.names = c("id", "y"), row.names = FALSE, sep = ",")
+
+View(kaggle)
+
+
+
+
+
+
+
+
+

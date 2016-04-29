@@ -43,13 +43,17 @@
 
 \section{Exploratory Data Analysis}
 
-\subsection{Data Background}
-The data of interest consists of 50000 tweets with 1000 predictors of the most commonly seen words on twitter. The response is binary and tells us the sentiment of the tweet - either good or bad. We use this dataset to make predictions and submit to Kaggle. %An expanded dataset with 1.4 million tweets includes the actual tweets, and this dataset will used for feature engineering. When model fitting, we will fit and predict both with and without these features.
+\subsection{Introduction}
+Predicting tweet sentiment is an area with many applications beyond just Twitter. Of course, it helps Twitter to improve its services in many ways. For instance, if Twitter determines that most of a user's tweets are of positive sentiment, it is not unreasonable to believe that a particular user may not benefit or seek to benefit from negative sentiment tweets and can filter up positive sentiment tweets for such a user. Another example is that we can further analyze positive and negative tweets. That is, once we have a good method of finding negative sentiment tweets, we might start rank the tweets on now negative these are. If we can identify a negative tweet to be threatening, for instance, Twitter might be able to contact relevant authorities to prevent an incident.
+
+However, tweet sentiment analysis is useful for work outside of Twitter. Looking at work of Bollen, Mao [1], we see that tweet sentiment has been used for predicting stocks, which is not at all obviously related to tweet sentiment. This highlights some of the importance of tweet sentiment because of its connections beyond Twitter.
+
+Our data of interest that we examine consists of 50000 tweets with 1000 predictors of the most commonly seen words on twitter. The response is binary and tells us the sentiment of the tweet - either good or bad. We use this dataset to make predictions and submit to Kaggle. %An expanded dataset with 1.4 million tweets includes the actual tweets, and this dataset will used for feature engineering. When model fitting, we will fit and predict both with and without these features.
 
 \subsection{Data Cleaning}
 One thing to be particularly wary about is white noise in the data. In particular, these are tweets whose predictors add no value for the purposes of predictions. One example of these type of white noise tweets are those with $0$'s in each of the 1000 predictors since predicting the sentiment of the tweet with no predictors is tantamount to flipping a coin. In the smaller dataset with 50000 tweets, we find 288 of these and proceed to remove them.
 
-Referencing the work of Pang et. al [1], we have that feature presence is more useful than feature frequency so we create a binary matrix of the initial features and compare all of the following methods with both the original data and the binary data.
+Referencing the work of Pang et. al [2], we have that feature presence is more useful than feature frequency so we create a binary matrix of the initial features and compare all of the following methods with both the original data and the binary data.
 
 Furthermore, this dataset is filled with a lot of stop word predictors. These are words that add no particular value to the predictors, that is, they amount to not much more than white noise. To reduce this white noise and speed up computation time, we use the \texttt{tm} package to remove these stop words. We further clean out the singular alphabetical letters (e.g. ``a'', ``b'', ``c'', ...). 
 
@@ -62,21 +66,26 @@ Since we have cleaned up a lot of predictors, we are bound to have newly introdu
 Finally, for the sake of comparison, we will fit models on three different datasets. The full dataset with minimal cleaning of the rows with no entries in any of the predictors, the cleaned dataset as described above, and then a binarized dataset after the cleaning. These three datasets should allows us to get a good grasp on how the cleaning affected our results.
 
 \subsection{Data Exploration}
-First, we take a look at which words are most connected with positive sentiment tweets and negative sentiment tweets. To see further why we would need to clean out some of the stop words, we look at the whole data first. Of the top 50 words that showed up in the positive tweets, we see \texttt{love} 1340 times, \texttt{thanks} 1116 times, and \texttt{lol} 1058 times. Of the top 50 words after cleaning, we see \texttt{good} 1388 times, \texttt{love} 935 times, \texttt{lol} 873 times, \texttt{thanks} 649 times, \texttt{hope} 510 times, \texttt{great} 495 times, \texttt{haha} 471 times, \texttt{wish} 437 times, and \texttt{fun} 422 times. So just from a little bit of cleaning, we have retrieved more information from the data. However, one thing to note is that of the top 50, \texttt{bad} showed up 451 times and \texttt{sad} showed up 448 times. So although the words we would guess are associated with positive sentiment showed up a lot, we also find words associated with negative sentiment show up quite a bit as well.
+First, we take a look at which words are most connected with positive sentiment tweets and negative sentiment tweets. To see further why we would need to clean out some of the stop words, we look at the whole data first. 
+
+Of the top 50 words that showed up in the positive tweets for the whole data, we see \texttt{love} 1340 times, \texttt{thanks} 1116 times, and \texttt{lol} 1058 times. Of the top 50 words after cleaning, we see \texttt{good} 1388 times, \texttt{love} 935 times, \texttt{lol} 873 times, \texttt{thanks} 649 times, \texttt{hope} 510 times, \texttt{great} 495 times, \texttt{haha} 471 times, \texttt{wish} 437 times, and \texttt{fun} 422 times. So just from a little bit of cleaning, we have retrieved more information from the data. However, one thing to note is that of the top 50, \texttt{bad} showed up 451 times and \texttt{sad} showed up 448 times. So although the words we would guess are associated with positive sentiment showed up a lot, we also find words associated with negative sentiment show up quite a bit as well.
 
 Doing a similar analysis for the negative sentiments, we find \texttt{oh} 629 times, \texttt{miss} 534 times, \texttt{sorry} 451 times, and \texttt{sad} 429 times. However, this portion of the data is less informative since \texttt{good}, \texttt{love}, \texttt{lol}, \texttt{thanks}, \texttt{great}, \texttt{hope}, \texttt{haha}, \texttt{wish}, and \texttt{fun} all show up in the top 50. This is indicative of the fact that some words we think of as positive can also be used in a negative manner. For instance, words like \texttt{love}, \texttt{lol}, and \texttt{haha} can be used in a sarcastic tone, which often is associated with a negative context.
 
 %\section{Feature Engineering}
 
 \section{Hyperparameter Tuning}
-For each of these methods, we use one model (typically the binarized one for the slower methods) to manually tune the hyperparameters. After finding a hyperparameter that approximately maximizes our CV Accuracy (while keeping in mind the runtime), we use this hyperparameters for all three models. And due to the limited submissions capabilities for Kaggle, we choose the models with the best CV Accuracy to submit to Kaggle and report the Kaggle Accuracy for that submission. 
+For each of these methods, we use one model (typically the binarized one) to manually tune the hyperparameters. After finding a hyperparameter that approximately maximizes our CV Accuracy, we use this hyperparameter for all three models. Due to the limited submissions capabilities for Kaggle, we choose the models with the best CV Accuracy to submit to Kaggle and report the Kaggle Accuracy for that submission. 
 
 \subsection{Logistic Regression}
 We used \texttt{cv.glmnet} to get \texttt{lambda.min}, which is the $\lambda$ that corresponds to the lowest cross validation error. Those are reported in the next section. The following are plots of the mean cross validated error against the varying $\lambda$ values that \texttt{cv.glmnet} tried. \\
 
-\centerline{\includegraphics[scale=.3]{diagrams/1logreg.png}\includegraphics[scale=.3]{diagrams/2logreg.png}\includegraphics[scale=.3]{diagrams/3logreg.png}}
+\centerline{\includegraphics[scale=.25]{diagrams/1logreg.png}\includegraphics[scale=.25]{diagrams/2logreg.png}\includegraphics[scale=.25]{diagrams/3logreg.png}}
 
 \subsection{Random Forest}
+For random forests, we fit a model with 100, 500, 1000, and 1500 trees. Interestingly enough, the fits with 500 and 1000 trees performed worse than the model with 100 trees. The following are plots of the misclassification error and the F1 Score. When fitting our model in the next section, we fit with 100 trees instead of 1500 trees in order to prioritize runtime efficiency and because their CV accuracy and  F1 scores were similar. \\
+
+\centerline{\includegraphics[scale=.35]{diagrams/6rf.png}\includegraphics[scale=.35]{diagrams/7rf.png}}
 
 \subsection{Generalized Boosting Models}
 For the GBM models, we used Adaboost with the following fixed hyperparameters \texttt{interaction.depth=5} and \texttt{shrinkage=.01}. We tried \texttt{n.trees=500,1000,1500,2000} on the binarized data. Because toward the larger tree sizes, \texttt{gbm} runs slower, we only plot out the CV Error and F1 Score (misclassification rate) against the four trees we tried. We should note that the difference between 1500 trees and 2000 trees is marginal and that any more would not give much better performance while severely overfitting. \\
@@ -85,7 +94,7 @@ For the GBM models, we used Adaboost with the following fixed hyperparameters \t
 \subsection{Neural Networks}
 
 \section{Model Fitting}
-For our models, we focus on mainly four methods: logistic regression, random forest, gradient boosting, and neural networks. These models were chosen because of their natural tendencies to perform in classification. We present the results in the tables below.
+For our models, we focus on mainly four methods: logistic regression, random forest, gradient boosting, and neural networks. These models were chosen because of their natural tendencies to perform in classification. We present the results in the tables below. We cross validate and look at the CV Accuracy as well as the CV F1 Score and report those below as well.
 
 \subsection{Logistic Regression}
 $$\begin{array}{|c|c|c|c|c|}
@@ -106,11 +115,11 @@ $$\begin{array}{|c|c|c|c|c|}
 \hline
 \text{Model} & \text{CV Acc} & \text{Kaggle Acc} & \text{CV F1 Score} & \text{Hyper-Parameters}   \\
 \hhline{|=|=|=|=|=|}
-\text{Random Forest} & 1 & 1 & 1 & \text{n.trees} = \\
+\text{Random Forest} &  &  &  & \text{n.trees} = 100 \\
 \hline
-\text{Cleaned RF} & 1 & 1 & 1 & \text{n.trees} = \\
+\text{Cleaned RF} &  &  &  & \text{n.trees} = 100 \\
 \hline
-\text{Binarized RF} & 1 & 1 & 1 & \text{n.trees} = \\
+\text{Binarized RF} & 0.7237 & 0.70640 & 0.7181475 & \text{n.trees} = 100 \\
 \hline
 \end{array}$$
 
@@ -132,26 +141,35 @@ $$\begin{array}{|c|c|c|c|c|}
 \hline
 \text{Model} & \text{CV Acc} & \text{Kaggle Acc} & \text{CV F1 Score} & \text{Hyper-Parameters} \\
 \hhline{|=|=|=|=|=|}
-\text{Original Neural Networks} & 1 & 1 & 1 & 1 \\
+\text{Original Neural Networks} & 1 & -- & 1 & \text{neurons} = \\
 \hline
-\text{Cleaned NN} & 1 & 1 & 1 & 1 \\
+\text{Cleaned NN} & 1 & -- & 1 & \text{neurons} = \\
 \hline
-\text{Binarized NN} & 1 & 1 & 1 & 1 \\
+\text{Binarized NN} & 1 & -- & 1 & \text{neurons} = \\
 \hline
 \end{array}$$
 
 \subsection{Comparison}
 
-\section{Ensemble Methods}
-combine the methods above, probably have some sort of voting to decide new classifications (could probably do 4 different combinations of ensembles)
+\section{Ensemble}
 
-\subsection{[method + method]}
+\subsection{Logistic Regression $\times$ 5}
 
-\subsection{[method + method + method]}
+\subsection{LR + RF + GBM}
+
+\subsection{LR $\times$ 2 + RF + GBM + NN}
 
 \section{Conclusion}
 
 \section{References}
-[1] Pang, B., Lee, L., Vaithyanathan, S.: Thumbs up?: sentiment classification using machine
+
+\subsection{Papers}
+[1] J. Bollen and H. Mao. Twitter mood as a stock market
+predictor. IEEE Computer, 44(10):91–94, (2010)
+
+[2] Pang, B., Lee, L., Vaithyanathan, S.: Thumbs up?: sentiment classification using machine
 learning techniques, pp. 79–86 (2002)
+
+\subsection{Github}
+https://github.com/ericaaronkim/tweetpredictors
 \end{document}
