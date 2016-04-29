@@ -75,9 +75,9 @@ Doing a similar analysis for the negative sentiments, we find \texttt{oh} 629 ti
 %\section{Feature Engineering}
 
 \section{Hyperparameter Tuning}
-For each of these methods, we use one model (typically the binarized one) to manually tune the hyperparameters. After finding a hyperparameter that approximately maximizes our CV Accuracy, we use this hyperparameter for all three models. Due to the limited submissions capabilities for Kaggle, we choose the models with the best CV Accuracy to submit to Kaggle and report the Kaggle Accuracy for that submission. 
+For each of these methods, we use one model (typically the binarized one) to manually tune the hyperparameters. After finding a hyperparameter that approximately maximizes our CV Accuracy, we use this hyperparameter for all three models. Due to the limited submissions capabilities for Kaggle, we only submit some of the models, usually the models with the best CV Accuracy and report the Kaggle Accuracy for those submission. These results are reported in the next section. 
 
-\subsection{Logistic Regression}
+\subsection{$L^1$ Penalized Logistic Regression}
 We used \texttt{cv.glmnet} to get \texttt{lambda.min}, which is the $\lambda$ that corresponds to the lowest cross validation error. Those are reported in the next section. The following are plots of the mean cross validated error against the varying $\lambda$ values that \texttt{cv.glmnet} tried. \\
 
 \centerline{\includegraphics[scale=.25]{diagrams/1logreg.png}\includegraphics[scale=.25]{diagrams/2logreg.png}\includegraphics[scale=.25]{diagrams/3logreg.png}}
@@ -85,27 +85,31 @@ We used \texttt{cv.glmnet} to get \texttt{lambda.min}, which is the $\lambda$ th
 \subsection{Random Forest}
 For random forests, we fit a model with 100, 500, 1000, and 1500 trees. Interestingly enough, the fits with 500 and 1000 trees performed worse than the model with 100 trees. The following are plots of the misclassification error and the F1 Score. When fitting our model in the next section, we fit with 100 trees instead of 1500 trees in order to prioritize runtime efficiency and because their CV accuracy and  F1 scores were similar. \\
 
-\centerline{\includegraphics[scale=.35]{diagrams/6rf.png}\includegraphics[scale=.35]{diagrams/7rf.png}}
+\centerline{\includegraphics[scale=.35]{diagrams/6rf.png} ~~~~~~~~~~ \includegraphics[scale=.35]{diagrams/7rf.png}}
 
 \subsection{Generalized Boosting Models}
 For the GBM models, we used Adaboost with the following fixed hyperparameters \texttt{interaction.depth=5} and \texttt{shrinkage=.01}. We tried \texttt{n.trees=500,1000,1500,2000} on the binarized data. Because toward the larger tree sizes, \texttt{gbm} runs slower, we only plot out the CV Error and F1 Score (misclassification rate) against the four trees we tried. We should note that the difference between 1500 trees and 2000 trees is marginal and that any more would not give much better performance while severely overfitting. \\
-\centerline{\includegraphics[scale=.35]{diagrams/4gbm.png}\includegraphics[scale=.35]{diagrams/5gbm.png}}
+
+\centerline{\includegraphics[scale=.35]{diagrams/4gbm.png} ~~~~~~~~~~ \includegraphics[scale=.35]{diagrams/5gbm.png}}
 
 \subsection{Neural Networks}
+Due to the sheer computational cost of running neural nets, we only fit models with 200 neurons and 500 neurons, and only on the cleaned, binarized dataset. As we see, they performed very similarly. Also, as noted before, due to the submission limitations of Kaggle, we were unable to submit neural net results to Kaggle. \\
+
+\centerline{\includegraphics[scale=.35]{diagrams/8nn.png} ~~~~~~~~~~ \includegraphics[scale=.35]{diagrams/9nn.png}}
 
 \section{Model Fitting}
 For our models, we focus on mainly four methods: logistic regression, random forest, gradient boosting, and neural networks. These models were chosen because of their natural tendencies to perform in classification. We present the results in the tables below. We cross validate and look at the CV Accuracy as well as the CV F1 Score and report those below as well.
 
-\subsection{Logistic Regression}
+\subsection{$L^1$ Penalized Logistic Regression}
 $$\begin{array}{|c|c|c|c|c|}
 \hline
 \text{Model} & \text{CV Acc} & \text{Kaggle Acc} & \text{CV F1 Score} & \text{Hyper-Parameters} \\
 \hhline{|=|=|=|=|=|}
 \text{Logistic Regression} & 0.7576561 & 0.75844 & 0.7640936 & \lambda = 0.001153669\\
 \hline
-\text{Cleaned LR} & 0.732 & -- & 0.7458752 & \lambda = 0.001159524 \\
+\text{Cleaned LR} & 0.732 & - & 0.7458752 & \lambda = 0.001159524 \\
 \hline
-\text{Binarized LR} & 0.7314 & -- & 0.7445311 & \lambda = 0.001110128 \\
+\text{Binarized LR} & 0.7314 & - & 0.7445311 & \lambda = 0.001110128 \\
 \hline
 \end{array}$$
 %0.7235
@@ -141,35 +145,39 @@ $$\begin{array}{|c|c|c|c|c|}
 \hline
 \text{Model} & \text{CV Acc} & \text{Kaggle Acc} & \text{CV F1 Score} & \text{Hyper-Parameters} \\
 \hhline{|=|=|=|=|=|}
-\text{Original Neural Networks} & 1 & -- & 1 & \text{neurons} = \\
-\hline
-\text{Cleaned NN} & 1 & -- & 1 & \text{neurons} = \\
-\hline
-\text{Binarized NN} & 1 & -- & 1 & \text{neurons} = \\
+\text{Binarized Neural Network } & 0.7245 & - & 0.7357298 & \text{neurons} = 500 \\
 \hline
 \end{array}$$
 
 \subsection{Comparison}
+It seems that the $L^1$ Penalized Logistic Regression performed the best, much to our surprise. It had the fastest runtime (at most a few minutes on a 6 year old computer) and with no adjustments, performed better than the other methods as well as with all the cleaned adjustments. The remaining three performed approximately similarly at around $72\%$ for the CV Accuracy and $70\%$ for the Kaggle Accuracy. This suggests that perhaps we should have cleaned less and added more meaningful predictors. Due to time restrictions and inexperience in Python, we have elected to skip feature engineering, however, should we come back to this dataset, feature engineering definitely seems necessary to push beyond $76\%$. To conclude, we perform some ensembles, which we will see will perform quite well.
 
 \section{Ensemble}
+To conclude, we will perform some ensembles. First, since the $L^1$ Penalized Logistic Regression performed so well, we so an ensemble of five of them with the full robust dataset using five different seeds for the models. Then, since these were the first three models that finished running, we ensembled the $L^1$ Penalized Logistic Regression with the full dataset, Random Forest with the binarized dataset, and the Generalized Boosting Models with the binarized dataset. For our final ensemble, we ensembled two $L^1$ Penalized Logistic Regression on the full dataset and one of each of the rest on the binarized dataset. The reason for using two of the Logistic Regression is because they peformed better so we wanted to add more weight to their decisions. The method of prediction was majority vote. That is, each model would predict on their own then would vote on the response. The results are reported below.
 
-\subsection{Logistic Regression $\times$ 5}
+$$\begin{array}{|c|c|c|c|}
+\hline
+\text{Model} & \text{CV Acc} & \text{Kaggle Acc} & \text{F1 Score} \\
+\hhline{|=|=|=|=|}
+\text{5$\times$ LR} & 0.7722 & 0.75388 & 0.7644621 \\
+\hline
+\text{LR + RF + GBM} & 0.7809 & 0.73420 & 0.7557563 \\
+\hline
+\text{$2\times$ LR + RF + GBM + NN} & 0.8026 & - & 0.823 \\
+\hline
+\end{array}$$
 
-\subsection{LR + RF + GBM}
-
-\subsection{LR $\times$ 2 + RF + GBM + NN}
 
 \section{Conclusion}
 
-\section{References}
+\newpage
 
-\subsection{Papers}
+\section{References}
 [1] J. Bollen and H. Mao. Twitter mood as a stock market
 predictor. IEEE Computer, 44(10):91–94, (2010)
 
 [2] Pang, B., Lee, L., Vaithyanathan, S.: Thumbs up?: sentiment classification using machine
 learning techniques, pp. 79–86 (2002)
 
-\subsection{Github}
-https://github.com/ericaaronkim/tweetpredictors
+[Github] https://github.com/ericaaronkim/tweetpredictors, 
 \end{document}

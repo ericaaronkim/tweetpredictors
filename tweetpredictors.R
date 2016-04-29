@@ -107,6 +107,7 @@ y.clean <- y[zero.rows]
 # binary data (the existence of a word instead of the quantity of the word)
 X.clean.bin <- (X.clean>0)*1
 
+
 ##### Exploratory Data Analysis #####
 # how many times do each of the predictor show up in positive tweets and negative tweets
 X.positive <- X.clean.bin[which(y.clean == 1),]
@@ -193,6 +194,14 @@ names(rf2) <- c("n.trees", "f1")
 ggplot(rf1, aes(x = n.trees, y = misclassif)) + geom_line() + ggtitle("Misclassification Error Against the Number of Trees") + xlab("Trees")+ylab("Misclassification Error")
 ggplot(rf2, aes(x = n.trees, y = f1)) + geom_line() + ggtitle("F1 Score Against the Number of Trees") + xlab("Trees")+ylab("F1 Score")
 
+# nn
+nn1 <- data.frame(c(200,500), c(1-0.7215,1-0.7245))
+names(nn1) <- c("neurons", "misclassif")
+nn2 <- data.frame(c(200,500), c(0.7328735,0.7357298))
+names(nn2) <- c("neurons", "f1")
+ggplot(nn1, aes(x = neurons, y = misclassif)) + geom_line() + ggtitle("Misclassification Error Against the Number of Neurons") + xlab("Neurons")+ylab("Misclassification Error")
+ggplot(nn2, aes(x = neurons, y = f1)) + geom_line() + ggtitle("F1 Score Against the Number of Neurons") + xlab("Neurons")+ylab("F1 Score")
+
 
 ##### Predicting On Xtest For Submission #####
 kaggle1 <- (predict(subset.tweet.full.glm.sparse, data.frame(as.matrix(Xtest.clean)), type = "response") > .5)*1
@@ -207,61 +216,44 @@ write.table(kaggle, "submission.csv", col.names = c("id", "y"), row.names = FALS
 View(kaggle)
 
 
-
-
-
-
-######## testing stuff out ########
-
-foo <- X.full.test
-colnames(foo) <- words$V1
-foo <- foo[,!is.element(colnames(X),stopwords(kind="en"))]
-foo <- foo[,!is.element(colnames(foo),union(letters, LETTERS))]
-foo <- foo[,-grep('[[:punct:]]',colnames(foo))]
-foo <- foo[,-grep('[[:digit:]]',colnames(foo))]
-foo <- foo[,-c(14,18,84,91,150,197,213,252,268,278,334,352,403,416,474,502,587,590,624,627,677,683,729,759,790)]
-
-
-
-x1 <- predict(subset.tweet.full.glm.sparse, Xtest, type = "response") > .5
-x2 <- predict(subset.tweet.bin.rf.1500, data.frame(as.matrix(Xtest.clean)))
-x3 <- predict(subset.tweet.bin.gbm.2000, data.frame(as.matrix(Xtest.clean)),n.trees = 2000, type = "response") > .5
+######## Ensembling (messy code) ########
+# lr + rf + gbm
+# some extra tweeking needed if you want to do this ensemble with the full dataset LR. change "subset.tweet.full.glm.sparse" to "subset.tweet.bin.glm.sparse" for faster results
+x1 <- predict(subset.tweet.full.glm.sparse, X.test.bin, type = "response") > .5
+x2 <- predict(subset.tweet.bin.rf.1500, data.frame(as.matrix(X.test.bin)))
+x3 <- predict(subset.tweet.bin.gbm.2000, data.frame(as.matrix(X.test.bin)),n.trees = 2000, type = "response") > .5
 x4 <- ((x1+(as.numeric(x2)-1)+x3)/3 > .5)*1
-accuracy_score(y.full.test,x4)
+accuracy_score(y.test,x4)
+f1_score(y.test, x4)
 
+# 5x penalized logreg
+seeder <- function() {
+  set <- sample(nrow(X.full.cleaned), 10000)
+  X.full.train <- X.full.cleaned[-set,]
+  y.full.train <- y.full.cleaned[-set]
+  X.full.test <- X.full.cleaned[set,]
+  y.full.test <- y.full.cleaned[set]
+}
 
-set <- sample(nrow(X.full.cleaned), 10000)
-
-# full predictors
-X.full.train <- X.full.cleaned[-set,]
-y.full.train <- y.full.cleaned[-set]
-X.full.test <- X.full.cleaned[set,]
-y.full.test <- y.full.cleaned[set]
-#df.train.full.cleaned <- data.frame(y.full.train, as.matrix(X.full.train))
-
-# penalized logreg full
+set.seed(222222222)
 x1 <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
+seeder()
 x2 <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
+seeder()
 x3 <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
+seeder()
 x4 <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
+seeder()
 x5 <- cv.glmnet(X.full.train, y.full.train, family = "binomial")
-y1 <- predict(x1, Xtest, type = "response") > .5
-y2 <- predict(subset.tweet.bin.rf.1500, data.frame(as.matrix(Xtest)))
-y3 <- predict(subset.tweet.bin.gbm.2000, data.frame(as.matrix(X.test.bin)),n.trees = 2000, type = "response") > .5
-y4 <- predict(x4, Xtest, type = "response") > .5
-y5 <- predict(x5, Xtest, type = "response") > .5
+y1 <- predict(x1, X.full.test, type = "response") > .5
+y2 <- predict(x2, X.full.test, type = "response") > .5
+y3 <- predict(x3, X.full.test, type = "response") > .5
+y4 <- predict(x4, X.full.test, type = "response") > .5
+y5 <- predict(x5, X.full.test, type = "response") > .5
 
-
-
-y6 <- (y1+y2+y3+y4+y5)>.5
-
-kaggle <- cbind(1:50000, x4)
-colnames(kaggle) <- c("id", "y")
-
-write.table(kaggle, "submission.csv", col.names = c("id", "y"), row.names = FALSE, sep = ",")
-
-View(kaggle)
-
+y6 <- ((y1+y2+y3+y4+y5)>.5)*1
+accuracy_score(y.full.test, y6)
+f1_score(y.full.test, y6)
 
 
 
