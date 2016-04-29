@@ -3,9 +3,9 @@ library(randomForest)
 library(gbm)
 library(neuralnet)
 
-setwd('~/Documents/class/stat154/final_proj/') # Set directory
+setwd('~/Documents/class/stat154/tweetpredictors/') # Set directory
 
-load('TrainTest.RData')
+load('data/TrainTest.RData')
 
 x_matrix = as.matrix(X)
 x_clean = x_matrix[rowSums(x_matrix) != 0,]

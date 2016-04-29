@@ -1,82 +1,29 @@
-#install.packages("readr")
 library(readr)
-#install.packages("Matrix")
 library(Matrix)
-#install.packages("ggplot2")
 library(ggplot2)
-#install.packages("kernlab")
-#library(kernlab)
-#install.packages("mclust")
-#library(mclust)
-#install.packages("Rtsne")
-#library(Rtsne)
-#install.packages("cluster")
-#library(cluster)
-#install.packages("fpc")
-#library(fpc)
-#install.packages("fGarch")
-#library(fGarch)
-#install.packages("lattice")
-#library(lattice)
-#install.packages("quantreg")
-#library(quantreg)
-#install.packages("FNN")
-#library(FNN)
-#install.packages("MASS")
-#library(MASS)
-#install.packages("glmnet")
 library(glmnet)
-#install.packages("lars")
-#library(lars)
-#install.packages("fda.usc")
-#library(fda.usc)
-#install.packages("pls")
-#library(pls)
-#install.packages("spls")
-#library(spls)
-#install.packages("penalized")
 library(penalized)
-#install.packages("boot")
-#library(boot)
-#install.packages("ipred")
-#library(ipred)
-#install.packages("rpart")
-#library(rpart)
-#install.packages("randomForest")
 library(randomForest)
-#install.packages("rpart.plot")
-#library(rpart.plot)
-#install.packages("gbm")
 library(gbm)
-#install.packages("e1071")
 library(e1071)
-#install.packages("tm")
 library(tm)
-
-
-##### Helpful Function #####
-# rm(list = ls())
+library(neuralnet)
 
 
 ##### Preliminaries #####
-setwd("~/Dropbox/Spring 2016/stat154/tweetpredictors")
+setwd('~/Documents/class/stat154/tweetpredictors/')
 
 load("data/TrainTest.RData")
 
-source("./data/ClassificationMetrics.R")
+source("data/ClassificationMetrics.R")
 
-data <- read_csv("data/MaskedDataRaw.csv")
+data <- read.csv("data/MaskedDataRaw.csv")
 words <- read.csv("data/vocab.csv", header = FALSE)
 colnames(X) <- words$V1
 
 
 ##### Data Cleaning #####
-# identifying white noise
-#which(apply(X, 1, sum) == 0)
-#length(which(apply(X, 1, sum) == 0))
-
 # cleaning stopwords, single letters, punctuation, numbers, and unicode
-#X.clean <- X # for comparing without cleaning
 Xtest <- Xtest[,!is.element(colnames(X),stopwords(kind="en"))]
 X.clean <- X[,!is.element(colnames(X),stopwords(kind="en"))]
 Xtest <- Xtest[,!is.element(colnames(X.clean),union(letters, LETTERS))]
@@ -117,7 +64,7 @@ colnames(X.clean) <- NULL #avoiding invalid multibyte string error
 colnames(X.clean.bin) <- NULL #avoiding invalid multibyte string error
 set.seed(222222222)
 
-set <- sample(nrow(X.clean), )
+set <- sample(nrow(X.clean), 40000)
 
 # regular predictors
 X.train <- X.clean[set,]
@@ -163,6 +110,24 @@ subset.tweet.bin.glm.sparse <- cv.glmnet(X.train.bin, y.train, family = "binomia
 out.glm.bin.sparse <- predict(subset.tweet.glm.sparse, X.test.bin, type = "response") > .5
 accuracy_score(y.test,out.glm.bin.sparse)
 
+# neural net
+subset.tweet.nn.sparse = neuralnet(as.formula(paste('y.train~', paste(names(df.train.cleaned)[2:785], 
+                                   collapse='+'))), data=df.train.cleaned, hidden=c(500), 
+                                   linear.output=FALSE)
+out.nn.sparse = compute(neural_net, X.test)$net.result > 0.5
+accuracy_score(y.test, out.nn.sparse)
+
+subset.tweet.nn.sparse.200 = neuralnet(as.formula(paste('y.train~', paste(names(df.train.bin.cleaned)[2:785], 
+                                       collapse='+'))), data=df.train.bin.cleaned, hidden=c(200), 
+                                       linear.output=FALSE)
+
+subset.tweet.nn.sparse.400 = neuralnet(as.formula(paste('y.train~', paste(names(df.train.cleaned)[2:785], 
+                                       collapse='+'))), data=df.train.cleaned, hidden=c(400), 
+                                       linear.output=FALSE)
+
+subset.tweet.nn.sparse.600 = neuralnet(as.formula(paste('y.train~', paste(names(df.train.cleaned)[2:785], 
+                                       collapse='+'))), data=df.train.cleaned, hidden=c(600), 
+                                       linear.output=FALSE)
 
 ##### Predicting On Xtest For Submission #####
 kaggle1 <- predict(subset.tweet.bin.glm.sparse, Xtest, type = "response")
